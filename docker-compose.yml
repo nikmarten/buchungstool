@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  camera-rental:
+    image: node:18
+    container_name: camera-rental
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: >
+      sh -c "cd client && 
+             npm install && 
+             REACT_APP_API_URL=http://192.168.0.23:5000/api npm run build && 
+             cd ../server && 
+             npm install && 
+             node index.js"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongodb:27017/camera-rental
+      - JWT_SECRET=IhrSicheresGeheimnis
+      - HOST=0.0.0.0
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb
+    networks:
+      - camera-rental-network
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - camera-rental-network
+    restart: unless-stopped
+
+networks:
+  camera-rental-network:
+    driver: bridge
+
+volumes:
+  mongodb_data: 
